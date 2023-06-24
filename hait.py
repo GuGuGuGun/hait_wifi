@@ -193,7 +193,7 @@ def connect():
         print(req.text)
         return False
     # 测试ping
-def pingTest(url='www.baidu.com', n=1):
+def ping_test(url='www.baidu.com', n=1):
     ret = os.system("ping baidu.com -n 1")
     return True if ret == 0 else False
 def wifi_connect_status():
@@ -216,7 +216,7 @@ if __name__ == '__main__':
             if connect():  # 进行认证
                 print('认证成功...')
                 time.sleep(1)
-                pingTest()  # 测试外网连通性
+                ping_test()
                 time.sleep(1)
                 print('认证完成，程序将在15秒后退出')
                 time.sleep(3)
