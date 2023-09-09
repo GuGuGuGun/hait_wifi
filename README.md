@@ -4,5 +4,5 @@
 # 运行环境为python3.10以上
 # 更新日志
 2023/9/9  
-校园网认证post变更为quickauth.do，post的data发生变化，重新编写data  
+校园网认证post变更为quickauth.do，post的data发生变化，重新编写data参数  
 优化判断逻辑
