@@ -1,53 +1,7 @@
-import os
-import socket
 import time
-import requests
-import sys
-import winreg
-import pywifi
-from pywifi import const
-import comtypes
-
-
-# 开机自启及取消自启
-def add_to_startup(name, file_path=""):
-    # By IvanHanloth
-    if file_path == "":
-        file_path = os.path.realpath(sys.argv[0])
-    auth = "IvanHanloth"
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\Microsoft\Windows\CurrentVersion\Run",
-                         winreg.KEY_SET_VALUE,
-                         winreg.KEY_ALL_ACCESS | winreg.KEY_WRITE | winreg.KEY_CREATE_SUB_KEY)  # By IvanHanloth
-    winreg.SetValueEx(key, name, 0, winreg.REG_SZ, file_path)
-    winreg.CloseKey(key)
-
-
-def remove_from_startup(name):
-    auth = "IvanHanloth"
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\Microsoft\Windows\CurrentVersion\Run",
-                         winreg.KEY_SET_VALUE,
-                         winreg.KEY_ALL_ACCESS | winreg.KEY_WRITE | winreg.KEY_CREATE_SUB_KEY)  # By IvanHanloth
-    try:
-        winreg.DeleteValue(key, name)
-    except FileNotFoundError:
-        print(f"{name} not found in startup.")
-    else:
-        print(f"{name} removed from startup.")
-    winreg.CloseKey(key)
-
-
-def get_host_ip():
-    """
-    查询本机ip地址
-    :return: ip
-    """
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('8.8.8.8', 80))
-        ip = s.getsockname()[0]
-    finally:
-        s.close()
-    return ip
+from Function import webfunction
+from Function import sysfunction
+from Function import wififunction
 
 
 filename = 'user_hait_setting'
@@ -100,11 +54,11 @@ except FileNotFoundError:
         match choice:
             case '1':
                 iftrueopen = 'true'
-                add_to_startup("hait_wifi")
+                sysfunction.SysFunction.add_to_startup("hait_wifi")
                 break
             case '2':
                 iftrueopen = 'false'
-                remove_from_startup("hait_wifi")
+                sysfunction.SysFunction.remove_from_startup("hait_wifi")
                 break
             case _:
                 print('输入值有误，请重新输入：')
@@ -113,7 +67,7 @@ except FileNotFoundError:
         w.flush()
         print('初始化完成！')
 
-hostIP = get_host_ip()
+hostIP = wififunction.get_host_ip()
 userName = userId + operator
 url = f'http://211.69.15.10:6060/quickauth.do?'
 # headers加上payload构成post请求
@@ -146,58 +100,17 @@ data = {
 }
 
 
-def connect():
-    """进行认证\n
-    认证成功->True\n
-    其他设备在线->3秒后重新执行验证程序\n
-    认证失败->False 并打印 网站源码"""
-    req = requests.post(url, headers=header, data=data)
-    req.encoding = req.apparent_encoding
-    print(req.text)
-    if '"message":null' in req.text:
-        return True
-    elif url in req.url:
-        print('3s后重新连接')
-        time.sleep(3)
-        connect()
-
-    elif '"message":"AC999"' in req.text:
-        print("当前已连接网络,无需再次连接")
-        return True
-    else:
-        print(req.text)
-        return False
-    # 测试ping
-
-
-def ping_test(url='www.baidu.com', n=1):
-    ret = os.system("ping baidu.com -n 1")
-    return True if ret == 0 else False
-
-
-def wifi_connect_status():
-    wifi = pywifi.PyWiFi()
-    iface = wifi.interfaces()[0]  # acquire the first Wlan card,maybe not
-
-    if iface.status() in [const.IFACE_CONNECTED, const.IFACE_INACTIVE]:
-        return 1
-    else:
-        print("wifi 未连接!")
-
-    return 0
-
-
 if __name__ == '__main__':
-    print('当前ip地址为:', get_host_ip())
+    print('当前ip地址为:', wififunction.get_host_ip())
     i = 1  # 若未连接进行五次循环
     while i <= 5:
-        if wifi_connect_status():  # wifi为连接状态，开始认证
+        if wififunction.WifiFunction.wifi_connect_status(1):  # wifi为连接状态，开始认证
             print('Wifi已连接，正在尝试认证...')
             print('正在进行第%d次连接...' % i)
-            if connect():  # 进行认证
+            if webfunction.WebPost(url,header, data).connect():  # 进行认证
                 print('认证成功...')
                 time.sleep(1)
-                ping_test()
+                wififunction.WifiFunction.ping_test(1)
                 time.sleep(1)
                 print('认证完成，程序将在15秒后退出')
                 time.sleep(3)
