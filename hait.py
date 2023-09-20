@@ -1,13 +1,30 @@
 import time
 from Function import webfunction
-from Function import sysfunction
 from Function import wififunction
-
+import winreg
+import os
+import sys
 
 filename = 'user_hait_setting'
-desktop_path = "D:\\"  # 新创建的txt文件的存放路径
+desktop_path = ".\\"  # 新创建的txt文件的存放路径
 path = desktop_path + filename + '.txt'
 is_new = False
+def add_to_startup(name,file_path=""):
+    if file_path == "":
+        file_path = os.path.realpath(sys.argv[0])
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\Microsoft\Windows\CurrentVersion\Run",winreg.KEY_SET_VALUE, winreg.KEY_ALL_ACCESS|winreg.KEY_WRITE|winreg.KEY_CREATE_SUB_KEY)#By IvanHanloth
+    winreg.SetValueEx(key, name, 0, winreg.REG_SZ, file_path)
+    winreg.CloseKey(key)
+
+def remove_from_startup(name):
+    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\Microsoft\Windows\CurrentVersion\Run", winreg.KEY_SET_VALUE, winreg.KEY_ALL_ACCESS|winreg.KEY_WRITE|winreg.KEY_CREATE_SUB_KEY)#By IvanHanloth
+    try:
+        winreg.DeleteValue(key, name)
+    except FileNotFoundError:
+        print(f"{name} not found in startup.")
+    else:
+        print(f"{name} removed from startup.")
+    winreg.CloseKey(key)
 try:
     with open(path) as f:
         s = f.read().strip().split()
@@ -41,7 +58,7 @@ except FileNotFoundError:
                 operator = '@gxylt'
                 break
             case '3':
-                operator = '@gyxdx'
+                operator = '@gxydx'
                 break
             case _:
                 print('输入值有误，请重新输入：')
@@ -54,11 +71,11 @@ except FileNotFoundError:
         match choice:
             case '1':
                 iftrueopen = 'true'
-                sysfunction.SysFunction.add_to_startup("hait_wifi")
+                add_to_startup("hait_wifi")
                 break
             case '2':
                 iftrueopen = 'false'
-                sysfunction.SysFunction.remove_from_startup("hait_wifi")
+                remove_from_startup("hait_wifi")
                 break
             case _:
                 print('输入值有误，请重新输入：')
